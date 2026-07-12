@@ -1,3 +1,4 @@
+-- 5. Calculer le total d'émission des gaz à effet de serre par région en 2020
 SELECT region.region_name, SUM(record.data_record) AS total_emissions
 FROM record
 INNER JOIN sensor ON record.id_sensor = sensor.id_sensor

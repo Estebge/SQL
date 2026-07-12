@@ -1,0 +1,13 @@
+# Dumps et sauvegardes
+*.dump
+*.bak
+
+# Fichiers temporaires des editeurs
+*~
+*.swp
+.vscode/
+.idea/
+
+# Systeme
+Thumbs.db
+.DS_Store

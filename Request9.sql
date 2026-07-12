@@ -1,3 +1,4 @@
+-- 9. Pour chaque gaz, donnez la somme de ses émissions (en ppm) dans la région Ile-de-France en 2020.
 SELECT gaz.gaz_name, SUM(record.data_record) AS total
 FROM record
 INNER JOIN sensor ON record.id_sensor = sensor.id_sensor

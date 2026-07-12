@@ -1,3 +1,4 @@
+-- 7. Classez les rapports concernant des émissions de NH3 par ordre chronologique.
 SELECT report_name
 FROM report
 INNER JOIN give ON report.id_report = give.id_report
