@@ -20,12 +20,21 @@ technical staff) send monthly **records** of pollutant gases, which are then col
 
 ## Repository contents
 
+```
+Database_setup/     scripts to build the database (run in this order)
+  Creation_des_tables.sql
+  Peuplement_tables.sql
+  Droits_utilisateurs.sql
+Queries/            the 12 queries requested by the client
+  Query1.sql … Query12.sql
+```
+
 | File | Purpose |
 |------|---------|
-| `Creation_des_tables.sql` | Schema: creation of the 12 tables and their constraints (primary / foreign keys, `CHECK`, indexes). |
-| `Peuplement_tables.sql`   | Test dataset (fictional): 13 regions, 29 cities, 25 agencies, 85 staff members, 41 sensors, 299 records, 12 reports. |
-| `Droits_utilisateurs.sql` | Creation of two accounts (`admin_air` / `user_air`) and their privileges (`GRANT`). |
-| `Request1.sql` … `Request12.sql` | The 12 queries requested by the client (see the table below). |
+| `Database_setup/Creation_des_tables.sql` | Schema: creation of the 12 tables and their constraints (primary / foreign keys, `CHECK`, indexes). |
+| `Database_setup/Peuplement_tables.sql`   | Test dataset (fictional): 13 regions, 29 cities, 25 agencies, 85 staff members, 41 sensors, 299 records, 12 reports. |
+| `Database_setup/Droits_utilisateurs.sql` | Creation of two accounts (`admin_air` / `user_air`) and their privileges (`GRANT`). |
+| `Queries/Query1.sql` … `Queries/Query12.sql` | The 12 queries requested by the client (see the table below). |
 
 ---
 
@@ -58,25 +67,26 @@ Main relationships:
 
 ## The requested queries
 
-The client required 12 "summary" queries to be available from the database. Each `RequestN.sql`
-file matches request number N:
+The client required 12 "summary" queries to be available from the database. Each
+`Queries/QueryN.sql` file matches request number N:
 
 | # | Client request | File |
 |---|----------------|------|
-| 1 | List all agencies | `Request1.sql` |
-| 2 | List the technical staff of the Bordeaux agency | `Request2.sql` |
-| 3 | Total number of deployed sensors | `Request3.sql` |
-| 4 | Reports published between 2018 and 2022 | `Request4.sql` |
-| 5 | Total greenhouse gas emissions per region in 2020 | `Request5.sql` |
-| 6 | Most polluting sector of activity in Île-de-France | `Request6.sql` |
-| 7 | Reports about NH3, in chronological order | `Request7.sql` |
-| 8 | Technicians maintaining acidifying gas sensors | `Request8.sql` |
-| 9 | Sum of emissions per gas in Île-de-France in 2020 | `Request9.sql` |
-| 10 | Productivity rate of the administrative staff in Toulouse | `Request10.sql` |
-| 11 | Reports containing a given gas (gas name as a parameter) | `Request11.sql` |
-| 12 | Regions with more sensors than agencies | `Request12.sql` |
+| 1 | List all agencies | `Queries/Query1.sql` |
+| 2 | List the technical staff of the Bordeaux agency | `Queries/Query2.sql` |
+| 3 | Total number of deployed sensors | `Queries/Query3.sql` |
+| 4 | Reports published between 2018 and 2022 | `Queries/Query4.sql` |
+| 5 | Total greenhouse gas emissions per region in 2020 | `Queries/Query5.sql` |
+| 6 | Most polluting sector of activity in Île-de-France | `Queries/Query6.sql` |
+| 7 | Reports about NH3, in chronological order | `Queries/Query7.sql` |
+| 8 | Technicians maintaining acidifying gas sensors | `Queries/Query8.sql` |
+| 9 | Sum of emissions per gas in Île-de-France in 2020 | `Queries/Query9.sql` |
+| 10 | Productivity rate of the administrative staff in Toulouse | `Queries/Query10.sql` |
+| 11 | Reports containing a given gas (gas name as a parameter) | `Queries/Query11.sql` |
+| 12 | Regions with more sensors than agencies | `Queries/Query12.sql` |
 
-For the parameterized query (`Request11.sql`), the gas name is set at the top of the script:
+For the parameterized query (`Queries/Query11.sql`), the gas name is set at the top of the
+script:
 
 ```sql
 SET @gaz_name := 'NH3';   -- replace with the desired gas
@@ -111,29 +121,29 @@ cd SQL
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS qualite_air CHARACTER SET utf8mb4;"
 
 # 3. Create the tables (schema + constraints)
-mysql -u root -p qualite_air < Creation_des_tables.sql
+mysql -u root -p qualite_air < Database_setup/Creation_des_tables.sql
 
 # 4. Load the test dataset
-mysql -u root -p qualite_air < Peuplement_tables.sql
+mysql -u root -p qualite_air < Database_setup/Peuplement_tables.sql
 
 # 5. (Optional) Create the admin_air / user_air accounts and their privileges
-mysql -u root -p qualite_air < Droits_utilisateurs.sql
+mysql -u root -p qualite_air < Database_setup/Droits_utilisateurs.sql
 
 # 6. Run a query (example: number 1)
-mysql -u root -p qualite_air < Request1.sql
+mysql -u root -p qualite_air < Queries/Query1.sql
 ```
 
 > `-u root -p`: connect as `root`, with `-p` prompting for the password interactively (change the
 > user as needed). Steps 3 to 5 each load one file into the `qualite_air` database; every
-> `RequestN.sql` is then run the same way, just changing the number.
+> `Queries/QueryN.sql` is then run the same way, just changing the number.
 
 ### From MySQL Workbench
 
 1. `CREATE DATABASE qualite_air;` then select the database.
-2. Open and run `Creation_des_tables.sql`.
-3. Open and run `Peuplement_tables.sql`.
-4. (Optional) Open and run `Droits_utilisateurs.sql`.
-5. Open a `RequestN.sql` file and run it.
+2. Open and run `Database_setup/Creation_des_tables.sql`.
+3. Open and run `Database_setup/Peuplement_tables.sql`.
+4. (Optional) Open and run `Database_setup/Droits_utilisateurs.sql`.
+5. Open a `Queries/QueryN.sql` file and run it.
 
 ### With Docker (no MySQL installation)
 
@@ -155,12 +165,12 @@ docker run --name qualite-air \
 docker logs -f qualite-air     # wait for "ready for connections", then Ctrl+C
 
 # 4. Load the schema, the data, then the privileges
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Creation_des_tables.sql
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Peuplement_tables.sql
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Droits_utilisateurs.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Creation_des_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Peuplement_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Droits_utilisateurs.sql
 
 # 5. Run a query (example: number 1)
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Request1.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Queries/Query1.sql
 
 # 6. Clean everything up when done
 docker rm -f qualite-air
@@ -175,5 +185,5 @@ do not break any query and are left as they are.
 
 - Some record values are not realistic for the gases involved (test data).
 - A few city ↔ region assignments or agency contact details contain minor input inconsistencies.
-- The account passwords in `Droits_utilisateurs.sql` are **demonstration** passwords — change
-  them before any real use.
+- The account passwords in `Database_setup/Droits_utilisateurs.sql` are **demonstration**
+  passwords — change them before any real use.

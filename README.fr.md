@@ -18,12 +18,21 @@ agents administratifs.
 
 ## Sommaire du dépôt
 
+```
+Database_setup/     scripts de mise en place de la base (à charger dans cet ordre)
+  Creation_des_tables.sql
+  Peuplement_tables.sql
+  Droits_utilisateurs.sql
+Queries/            les 12 requêtes demandées par le client
+  Query1.sql … Query12.sql
+```
+
 | Fichier | Rôle |
 |---------|------|
-| `Creation_des_tables.sql` | Schéma : création des 12 tables et des contraintes (clés primaires / étrangères, `CHECK`, index). |
-| `Peuplement_tables.sql`   | Jeu de données d'essai (fictif) : 13 régions, 29 villes, 25 agences, 85 agents, 41 capteurs, 299 relevés, 12 rapports. |
-| `Droits_utilisateurs.sql` | Création de deux comptes (`admin_air` / `user_air`) et attribution des droits (`GRANT`). |
-| `Request1.sql` … `Request12.sql` | Les 12 requêtes demandées par le client (voir le tableau plus bas). |
+| `Database_setup/Creation_des_tables.sql` | Schéma : création des 12 tables et des contraintes (clés primaires / étrangères, `CHECK`, index). |
+| `Database_setup/Peuplement_tables.sql`   | Jeu de données d'essai (fictif) : 13 régions, 29 villes, 25 agences, 85 agents, 41 capteurs, 299 relevés, 12 rapports. |
+| `Database_setup/Droits_utilisateurs.sql` | Création de deux comptes (`admin_air` / `user_air`) et attribution des droits (`GRANT`). |
+| `Queries/Query1.sql` … `Queries/Query12.sql` | Les 12 requêtes demandées par le client (voir le tableau plus bas). |
 
 ---
 
@@ -57,24 +66,25 @@ Relations principales :
 ## Les requêtes demandées
 
 Le client a imposé 12 requêtes « résumés » exploitables depuis la base. Chaque fichier
-`RequestN.sql` correspond à la demande n° N :
+`Queries/QueryN.sql` correspond à la demande n° N :
 
 | # | Demande du client | Fichier |
 |---|-------------------|---------|
-| 1 | Lister l'ensemble des agences | `Request1.sql` |
-| 2 | Lister le personnel technique de l'agence de Bordeaux | `Request2.sql` |
-| 3 | Nombre total de capteurs déployés | `Request3.sql` |
-| 4 | Rapports publiés entre 2018 et 2022 | `Request4.sql` |
-| 5 | Total des émissions de GES par région en 2020 | `Request5.sql` |
-| 6 | Secteur d'activité le plus polluant en Île-de-France | `Request6.sql` |
-| 7 | Rapports concernant le NH3, par ordre chronologique | `Request7.sql` |
-| 8 | Techniciens maintenant des capteurs de gaz acidificateurs | `Request8.sql` |
-| 9 | Somme des émissions par gaz en Île-de-France en 2020 | `Request9.sql` |
-| 10 | Taux de productivité des agents administratifs de Toulouse | `Request10.sql` |
-| 11 | Rapports contenant un gaz donné (nom du gaz en paramètre) | `Request11.sql` |
-| 12 | Régions ayant plus de capteurs que d'agences | `Request12.sql` |
+| 1 | Lister l'ensemble des agences | `Queries/Query1.sql` |
+| 2 | Lister le personnel technique de l'agence de Bordeaux | `Queries/Query2.sql` |
+| 3 | Nombre total de capteurs déployés | `Queries/Query3.sql` |
+| 4 | Rapports publiés entre 2018 et 2022 | `Queries/Query4.sql` |
+| 5 | Total des émissions de GES par région en 2020 | `Queries/Query5.sql` |
+| 6 | Secteur d'activité le plus polluant en Île-de-France | `Queries/Query6.sql` |
+| 7 | Rapports concernant le NH3, par ordre chronologique | `Queries/Query7.sql` |
+| 8 | Techniciens maintenant des capteurs de gaz acidificateurs | `Queries/Query8.sql` |
+| 9 | Somme des émissions par gaz en Île-de-France en 2020 | `Queries/Query9.sql` |
+| 10 | Taux de productivité des agents administratifs de Toulouse | `Queries/Query10.sql` |
+| 11 | Rapports contenant un gaz donné (nom du gaz en paramètre) | `Queries/Query11.sql` |
+| 12 | Régions ayant plus de capteurs que d'agences | `Queries/Query12.sql` |
 
-Pour la requête paramétrable (`Request11.sql`), le nom du gaz se règle en tête de script :
+Pour la requête paramétrable (`Queries/Query11.sql`), le nom du gaz se règle en tête de
+script :
 
 ```sql
 SET @gaz_name := 'NH3';   -- remplacer par le gaz souhaité
@@ -111,30 +121,30 @@ cd SQL
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS qualite_air CHARACTER SET utf8mb4;"
 
 # 3. Créer les tables (schéma + contraintes)
-mysql -u root -p qualite_air < Creation_des_tables.sql
+mysql -u root -p qualite_air < Database_setup/Creation_des_tables.sql
 
 # 4. Peupler la base (jeu de données d'essai)
-mysql -u root -p qualite_air < Peuplement_tables.sql
+mysql -u root -p qualite_air < Database_setup/Peuplement_tables.sql
 
 # 5. (Optionnel) Créer les comptes admin_air / user_air et leurs droits
-mysql -u root -p qualite_air < Droits_utilisateurs.sql
+mysql -u root -p qualite_air < Database_setup/Droits_utilisateurs.sql
 
 # 6. Lancer une requête (exemple : la n° 1)
-mysql -u root -p qualite_air < Request1.sql
+mysql -u root -p qualite_air < Queries/Query1.sql
 ```
 
 > `-u root -p` : connexion en tant que `root`, `-p` demande le mot de passe de manière
 > interactive (adapter l'utilisateur au besoin). Les étapes 3 à 5 chargent chacune un fichier
-> dans la base `qualite_air` ; chaque `RequestN.sql` se lance ensuite de la même façon en
+> dans la base `qualite_air` ; chaque `Queries/QueryN.sql` se lance ensuite de la même façon en
 > changeant le numéro.
 
 ### Depuis MySQL Workbench
 
 1. `CREATE DATABASE qualite_air;` puis sélectionner la base.
-2. Ouvrir et exécuter `Creation_des_tables.sql`.
-3. Ouvrir et exécuter `Peuplement_tables.sql`.
-4. (Optionnel) Ouvrir et exécuter `Droits_utilisateurs.sql`.
-5. Ouvrir un fichier `RequestN.sql` et l'exécuter.
+2. Ouvrir et exécuter `Database_setup/Creation_des_tables.sql`.
+3. Ouvrir et exécuter `Database_setup/Peuplement_tables.sql`.
+4. (Optionnel) Ouvrir et exécuter `Database_setup/Droits_utilisateurs.sql`.
+5. Ouvrir un fichier `Queries/QueryN.sql` et l'exécuter.
 
 ### Avec Docker (sans installer MySQL)
 
@@ -156,12 +166,12 @@ docker run --name qualite-air \
 docker logs -f qualite-air     # attendre « ready for connections », puis Ctrl+C
 
 # 4. Charger le schéma, les données, puis les droits
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Creation_des_tables.sql
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Peuplement_tables.sql
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Droits_utilisateurs.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Creation_des_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Peuplement_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Database_setup/Droits_utilisateurs.sql
 
 # 5. Lancer une requête (exemple : la n° 1)
-docker exec -i qualite-air mysql -uroot -proot qualite_air < Request1.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Queries/Query1.sql
 
 # 6. Tout supprimer une fois terminé
 docker rm -f qualite-air
@@ -177,5 +187,5 @@ subsistent : elles ne cassent aucune requête et sont laissées telles quelles.
 - Certaines valeurs de relevés ne sont pas réalistes pour les gaz concernés (jeu d'essai).
 - Quelques rattachements ville ↔ région ou coordonnées d'agences comportent de légères
   incohérences de saisie.
-- Les mots de passe des comptes de `Droits_utilisateurs.sql` sont des mots de passe de
-  **démonstration** — à changer avant tout usage réel.
+- Les mots de passe des comptes de `Database_setup/Droits_utilisateurs.sql` sont des mots de
+  passe de **démonstration** — à changer avant tout usage réel.
