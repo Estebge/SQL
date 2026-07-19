@@ -1,148 +1,179 @@
-# Qualité de l'air — Base de données relationnelle
+# 🌍 Air Quality: Relational Database
 
-Projet **CESI** (module *Données et modélisation*, SQL) réalisé en première année du cycle
-classe préparatoire intégrée, pour l'entreprise fictive **DATA-X**, mandatée par le ministère
-de l'Écologie pour **centraliser et interroger des données publiques sur la qualité de l'air**
-dans les grandes villes de France (dans la lignée des rapports du GIEC).
+**🇬🇧 English** | 🇫🇷 [Français](README.fr.md)
 
-Les données proviennent d'un réseau d'agences réparties sur le territoire :
-des **capteurs** (maintenus par des agents techniques) transmettent mensuellement des
-**relevés** de gaz polluants, qui sont ensuite regroupés dans des **rapports** rédigés par des
-agents administratifs.
+Project carried out at **CESI** (*Data and Modeling* module, SQL) during my first year of
+integrated preparatory school, for the fictional company **DATA-X**, commissioned by the French
+Ministry of Ecology to **centralize and query public air quality data** in major French cities
+(in line with the IPCC reports).
 
-> Projet réalisé en groupe, déjà rendu dans le cadre de la formation. Ce dépôt en conserve
-> le code tel qu'il a été produit — quelques imperfections de jeu d'essai subsistent, elles
-> sont assumées (voir *Limites connues*).
+The data comes from a network of agencies spread across the country: **sensors** (maintained by
+technical staff) send monthly **records** of pollutant gases, which are then collected into
+**reports** written by administrative staff.
 
-## Sommaire du dépôt
+> Group project, already submitted as part of the course. This repository keeps the code as it
+> was produced — a few test-data imperfections remain, and they are intentional (see
+> *Known limitations*).
 
-| Fichier | Rôle |
-|---------|------|
-| `Creation_des_tables.sql` | Schéma : création des 12 tables et des contraintes (clés primaires / étrangères, `CHECK`, index). |
-| `Peuplement_tables.sql`   | Jeu de données d'essai (fictif) : 13 régions, 29 villes, 25 agences, 85 agents, 41 capteurs, 299 relevés, 12 rapports. |
-| `Droits_utilisateurs.sql` | Création de deux comptes (`admin_air` / `user_air`) et attribution des droits (`GRANT`). |
-| `Request1.sql` … `Request12.sql` | Les 12 requêtes demandées par le client (voir le tableau plus bas). |
+> **Note on language:** the SQL code, comments and identifiers are in French, as they were
+> written at the time. Only this README is available in English.
+
+## Repository contents
+
+| File | Purpose |
+|------|---------|
+| `Creation_des_tables.sql` | Schema: creation of the 12 tables and their constraints (primary / foreign keys, `CHECK`, indexes). |
+| `Peuplement_tables.sql`   | Test dataset (fictional): 13 regions, 29 cities, 25 agencies, 85 staff members, 41 sensors, 299 records, 12 reports. |
+| `Droits_utilisateurs.sql` | Creation of two accounts (`admin_air` / `user_air`) and their privileges (`GRANT`). |
+| `Request1.sql` … `Request12.sql` | The 12 queries requested by the client (see the table below). |
 
 ---
 
-## Modèle de données
+## Data model
 
-Le schéma respecte la 3e forme normale. Les 12 tables :
+The schema is in third normal form. The 12 tables:
 
-- **`region`** — les 13 régions de France métropolitaine (Corse comprise).
-- **`city`** — villes, rattachées à une région (`id_region`).
-- **`type`** — type de gaz : `GES` (gaz à effet de serre) ou `GRA` (gaz acidificateur).
-- **`gaz`** — gaz polluant (N2O, CO2, NH3, CH4, PFC, HFC, SF6…), rattaché à un `type`.
-- **`activity_sector`** — secteur d'activité (industrie, transport, agriculture…).
-- **`agency`** — agence locale, située dans une `city`, avec son chef (`id_manager`).
-- **`agent`** — personnel (`job_name` = `CHEF`, `TECH` ou `ADMIN`), rattaché à une agence.
-- **`sensor`** — capteur : configuré pour **un** gaz et **un** secteur, maintenu par un
-  agent technique, installé dans une ville.
-- **`record`** — relevé mensuel : une valeur (`data_record`), une date, un capteur.
-- **`report`** — rapport : un titre et une date de parution.
-- **`give`** — table de liaison *relevé ↔ rapport* (un rapport regroupe plusieurs relevés).
-- **`writing`** — table de liaison *rapport ↔ agent* (un rapport peut être écrit par
-  plusieurs agents administratifs).
+- **`region`** — the 13 regions of metropolitan France (Corsica included).
+- **`city`** — cities, linked to a region (`id_region`).
+- **`type`** — gas category: `GES` (greenhouse gas) or `GRA` (acidifying gas).
+- **`gaz`** — pollutant gas (N2O, CO2, NH3, CH4, PFC, HFC, SF6…), linked to a `type`.
+- **`activity_sector`** — sector of activity (industry, transport, agriculture…).
+- **`agency`** — local agency, located in a `city`, with its manager (`id_manager`).
+- **`agent`** — staff member (`job_name` = `CHEF`, `TECH` or `ADMIN`), attached to an agency.
+- **`sensor`** — sensor: configured for **one** gas and **one** sector, maintained by a
+  technical staff member, installed in a city.
+- **`record`** — monthly reading: a value (`data_record`), a date, a sensor.
+- **`report`** — report: a title and a publication date.
+- **`give`** — join table *record ↔ report* (a report gathers several records).
+- **`writing`** — join table *report ↔ agent* (a report can be written by several
+  administrative staff members).
 
-Relations principales :
+Main relationships:
 `region → city → agency → agent → sensor → record → give → report → writing`
 
-> À noter : la table de liaison rapport ↔ agent aurait dû s'appeler `write`, mais `write` est
-> un mot réservé en SQL — elle a donc été renommée `writing`.
+> Note: the report ↔ agent join table should have been named `write`, but `write` is a reserved
+> word in SQL — so it was renamed `writing`.
 
 ---
 
-## Les requêtes demandées
+## The requested queries
 
-Le client a imposé 12 requêtes « résumés » exploitables depuis la base. Chaque fichier
-`RequestN.sql` correspond à la demande n° N :
+The client required 12 "summary" queries to be available from the database. Each `RequestN.sql`
+file matches request number N:
 
-| # | Demande du client | Fichier |
-|---|-------------------|---------|
-| 1 | Lister l'ensemble des agences | `Request1.sql` |
-| 2 | Lister le personnel technique de l'agence de Bordeaux | `Request2.sql` |
-| 3 | Nombre total de capteurs déployés | `Request3.sql` |
-| 4 | Rapports publiés entre 2018 et 2022 | `Request4.sql` |
-| 5 | Total des émissions de GES par région en 2020 | `Request5.sql` |
-| 6 | Secteur d'activité le plus polluant en Île-de-France | `Request6.sql` |
-| 7 | Rapports concernant le NH3, par ordre chronologique | `Request7.sql` |
-| 8 | Techniciens maintenant des capteurs de gaz acidificateurs | `Request8.sql` |
-| 9 | Somme des émissions par gaz en Île-de-France en 2020 | `Request9.sql` |
-| 10 | Taux de productivité des agents administratifs de Toulouse | `Request10.sql` |
-| 11 | Rapports contenant un gaz donné (nom du gaz en paramètre) | `Request11.sql` |
-| 12 | Régions ayant plus de capteurs que d'agences | `Request12.sql` |
+| # | Client request | File |
+|---|----------------|------|
+| 1 | List all agencies | `Request1.sql` |
+| 2 | List the technical staff of the Bordeaux agency | `Request2.sql` |
+| 3 | Total number of deployed sensors | `Request3.sql` |
+| 4 | Reports published between 2018 and 2022 | `Request4.sql` |
+| 5 | Total greenhouse gas emissions per region in 2020 | `Request5.sql` |
+| 6 | Most polluting sector of activity in Île-de-France | `Request6.sql` |
+| 7 | Reports about NH3, in chronological order | `Request7.sql` |
+| 8 | Technicians maintaining acidifying gas sensors | `Request8.sql` |
+| 9 | Sum of emissions per gas in Île-de-France in 2020 | `Request9.sql` |
+| 10 | Productivity rate of the administrative staff in Toulouse | `Request10.sql` |
+| 11 | Reports containing a given gas (gas name as a parameter) | `Request11.sql` |
+| 12 | Regions with more sensors than agencies | `Request12.sql` |
 
-Pour la requête paramétrable (`Request11.sql`), le nom du gaz se règle en tête de script :
+For the parameterized query (`Request11.sql`), the gas name is set at the top of the script:
 
 ```sql
-SET @gaz_name := 'NH3';   -- remplacer par le gaz souhaité
+SET @gaz_name := 'NH3';   -- replace with the desired gas
 ```
 
 ---
 
-## Prérequis
+## Requirements
 
-- **MySQL 8.0** (ou MariaDB 10.5+). Le code utilise des fonctions spécifiques :
-  `AUTO_INCREMENT`, `YEAR()`, `DATEDIFF()`, `CURDATE()`, variables utilisateur `SET @var`.
-- **git** pour récupérer le dépôt.
-- Un client en ligne de commande (**MySQL Command Line Client**) ou une interface
-  graphique (**MySQL Workbench**).
-- Encodage **UTF-8** recommandé (les données contiennent des accents : « Île-de-France »,
-  « Nîmes »…).
+- **MySQL 8.0** (or MariaDB 10.5+). The code uses specific functions: `AUTO_INCREMENT`,
+  `YEAR()`, `DATEDIFF()`, `CURDATE()`, user-defined variables `SET @var`.
+- **git** to clone the repository.
+- A command-line client (**MySQL Command Line Client**) or a GUI (**MySQL Workbench**).
+- **UTF-8** encoding recommended (the data contains accents: "Île-de-France", "Nîmes"…).
 
 ---
 
-## Installation / Lancement
+## Setup / Running
 
-Le parcours complet, depuis la récupération du dépôt jusqu'à l'exécution d'une requête. Les
-scripts SQL ne créent pas la base de données : on la crée d'abord, puis on charge les scripts
-**dans l'ordre** (tables → peuplement → droits → requêtes).
+The full path, from cloning the repository to running a query. The SQL scripts do not create the
+database itself: create it first, then load the scripts **in order** (tables → data → privileges
+→ queries).
 
-### En ligne de commande
+### From the command line
 
 ```bash
-# 1. Récupérer le dépôt et s'y placer
+# 1. Clone the repository and enter it
 git clone https://github.com/Estebge/SQL.git
 cd SQL
 
-# 2. Créer la base de données
+# 2. Create the database
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS qualite_air CHARACTER SET utf8mb4;"
 
-# 3. Créer les tables (schéma + contraintes)
+# 3. Create the tables (schema + constraints)
 mysql -u root -p qualite_air < Creation_des_tables.sql
 
-# 4. Peupler la base (jeu de données d'essai)
+# 4. Load the test dataset
 mysql -u root -p qualite_air < Peuplement_tables.sql
 
-# 5. (Optionnel) Créer les comptes admin_air / user_air et leurs droits
+# 5. (Optional) Create the admin_air / user_air accounts and their privileges
 mysql -u root -p qualite_air < Droits_utilisateurs.sql
 
-# 6. Lancer une requête (exemple : la n° 1)
+# 6. Run a query (example: number 1)
 mysql -u root -p qualite_air < Request1.sql
 ```
 
-> `-u root -p` : connexion en tant que `root`, `-p` demande le mot de passe de manière
-> interactive (adapter l'utilisateur au besoin). Les étapes 3 à 5 chargent chacune un fichier
-> dans la base `qualite_air` ; chaque `RequestN.sql` se lance ensuite de la même façon en
-> changeant le numéro.
+> `-u root -p`: connect as `root`, with `-p` prompting for the password interactively (change the
+> user as needed). Steps 3 to 5 each load one file into the `qualite_air` database; every
+> `RequestN.sql` is then run the same way, just changing the number.
 
-### Depuis MySQL Workbench
+### From MySQL Workbench
 
-1. `CREATE DATABASE qualite_air;` puis sélectionner la base.
-2. Ouvrir et exécuter `Creation_des_tables.sql`.
-3. Ouvrir et exécuter `Peuplement_tables.sql`.
-4. (Optionnel) Ouvrir et exécuter `Droits_utilisateurs.sql`.
-5. Ouvrir un fichier `RequestN.sql` et l'exécuter.
+1. `CREATE DATABASE qualite_air;` then select the database.
+2. Open and run `Creation_des_tables.sql`.
+3. Open and run `Peuplement_tables.sql`.
+4. (Optional) Open and run `Droits_utilisateurs.sql`.
+5. Open a `RequestN.sql` file and run it.
+
+### With Docker (no MySQL installation)
+
+Handy to try the project without touching your own setup: the server runs in a container, and
+everything is removed with a single command afterwards.
+
+```bash
+# 1. Clone the repository and enter it
+git clone https://github.com/Estebge/SQL.git
+cd SQL
+
+# 2. Start a MySQL server (the qualite_air database is created automatically)
+docker run --name qualite-air \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=qualite_air \
+  -p 3306:3306 -d mysql:8.0
+
+# 3. Wait for the server to be ready (a few seconds on first start)
+docker logs -f qualite-air     # wait for "ready for connections", then Ctrl+C
+
+# 4. Load the schema, the data, then the privileges
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Creation_des_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Peuplement_tables.sql
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Droits_utilisateurs.sql
+
+# 5. Run a query (example: number 1)
+docker exec -i qualite-air mysql -uroot -proot qualite_air < Request1.sql
+
+# 6. Clean everything up when done
+docker rm -f qualite-air
+```
 
 ---
 
-## Limites connues
+## Known limitations
 
-Le jeu de données est **fictif**, généré pour servir de jeu d'essai. Quelques imperfections y
-subsistent : elles ne cassent aucune requête et sont laissées telles quelles.
+The dataset is **fictional**, generated to serve as test data. A few imperfections remain: they
+do not break any query and are left as they are.
 
-- Certaines valeurs de relevés ne sont pas réalistes pour les gaz concernés (jeu d'essai).
-- Quelques rattachements ville ↔ région ou coordonnées d'agences comportent de légères
-  incohérences de saisie.
-- Les mots de passe des comptes de `Droits_utilisateurs.sql` sont des mots de passe de
-  **démonstration** — à changer avant tout usage réel.
+- Some record values are not realistic for the gases involved (test data).
+- A few city ↔ region assignments or agency contact details contain minor input inconsistencies.
+- The account passwords in `Droits_utilisateurs.sql` are **demonstration** passwords — change
+  them before any real use.
