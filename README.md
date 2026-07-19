@@ -1,19 +1,27 @@
 # Qualité de l'air — Base de données relationnelle
 
-Projet de **CESI** (SQL) réalisé en première année du cycle classe préparatoire intégrée pour l'entreprise fictive **DATA-X**, mandatée par le ministère de l'Écologie pour **centraliser et interroger des données publiques sur la qualité de l'air** dans les grandes villes de France.
+Projet **CESI** (module *Données et modélisation*, SQL) réalisé en première année du cycle
+classe préparatoire intégrée, pour l'entreprise fictive **DATA-X**, mandatée par le ministère
+de l'Écologie pour **centraliser et interroger des données publiques sur la qualité de l'air**
+dans les grandes villes de France (dans la lignée des rapports du GIEC).
 
-Les données proviennent d'un réseau d'agences météo réparties sur le territoire :
-des **capteurs** (gérés par des agents techniques) transmettent mensuellement des **relevés** de gaz polluants, qui sont ensuite regroupés dans des **rapports** rédigés par des agents administratifs.
+Les données proviennent d'un réseau d'agences réparties sur le territoire :
+des **capteurs** (maintenus par des agents techniques) transmettent mensuellement des
+**relevés** de gaz polluants, qui sont ensuite regroupés dans des **rapports** rédigés par des
+agents administratifs.
 
----
+> Projet réalisé en groupe, déjà rendu dans le cadre de la formation. Ce dépôt en conserve
+> le code tel qu'il a été produit — quelques imperfections de jeu d'essai subsistent, elles
+> sont assumées (voir *Limites connues*).
 
 ## Sommaire du dépôt
 
 | Fichier | Rôle |
 |---------|------|
-| `Creation_des_tables.sql` | Schéma : création des 12 tables et des contraintes (clés primaires / étrangères). |
-| `Peuplement_tables.sql`   | Jeu de données d'essai (25 villes/agences, ~55 agents, 30 capteurs, 200 relevés, 11 rapports). |
-| `Request1.sql` … `Request11.sql` | Les requêtes demandées par le client (voir le tableau plus bas). |
+| `Creation_des_tables.sql` | Schéma : création des 12 tables et des contraintes (clés primaires / étrangères, `CHECK`, index). |
+| `Peuplement_tables.sql`   | Jeu de données d'essai (fictif) : 13 régions, 29 villes, 25 agences, 85 agents, 41 capteurs, 299 relevés, 12 rapports. |
+| `Droits_utilisateurs.sql` | Création de deux comptes (`admin_air` / `user_air`) et attribution des droits (`GRANT`). |
+| `Request1.sql` … `Request12.sql` | Les 12 requêtes demandées par le client (voir le tableau plus bas). |
 
 ---
 
@@ -21,7 +29,7 @@ des **capteurs** (gérés par des agents techniques) transmettent mensuellement 
 
 Le schéma respecte la 3e forme normale. Les 12 tables :
 
-- **`region`** — les 12 régions de France métropolitaine.
+- **`region`** — les 13 régions de France métropolitaine (Corse comprise).
 - **`city`** — villes, rattachées à une région (`id_region`).
 - **`type`** — type de gaz : `GES` (gaz à effet de serre) ou `GRA` (gaz acidificateur).
 - **`gaz`** — gaz polluant (N2O, CO2, NH3, CH4, PFC, HFC, SF6…), rattaché à un `type`.
@@ -39,11 +47,15 @@ Le schéma respecte la 3e forme normale. Les 12 tables :
 Relations principales :
 `region → city → agency → agent → sensor → record → give → report → writing`
 
+> À noter : la table de liaison rapport ↔ agent aurait dû s'appeler `write`, mais `write` est
+> un mot réservé en SQL — elle a donc été renommée `writing`.
+
 ---
 
 ## Les requêtes demandées
 
-Le client a imposé 12 requêtes « résumés » exploitables depuis la base :
+Le client a imposé 12 requêtes « résumés » exploitables depuis la base. Chaque fichier
+`RequestN.sql` correspond à la demande n° N :
 
 | # | Demande du client | Fichier |
 |---|-------------------|---------|
@@ -56,18 +68,14 @@ Le client a imposé 12 requêtes « résumés » exploitables depuis la base :
 | 7 | Rapports concernant le NH3, par ordre chronologique | `Request7.sql` |
 | 8 | Techniciens maintenant des capteurs de gaz acidificateurs | `Request8.sql` |
 | 9 | Somme des émissions par gaz en Île-de-France en 2020 | `Request9.sql` |
-| 10 | Taux de productivité des agents admin de Toulouse | *(non implémentée)* |
-| 11 | Rapports contenant un gaz donné (nom du gaz en paramètre) | `Request10.sql` |
-| 12 | Régions ayant plus de capteurs que d'agences | `Request11.sql` |
+| 10 | Taux de productivité des agents administratifs de Toulouse | `Request10.sql` |
+| 11 | Rapports contenant un gaz donné (nom du gaz en paramètre) | `Request11.sql` |
+| 12 | Régions ayant plus de capteurs que d'agences | `Request12.sql` |
 
-> **Note :** les fichiers `Request10.sql` et `Request11.sql` correspondent aux demandes
-> **#11** et **#12** du client. La demande **#10** (taux de productivité des
-> administratifs de Toulouse) n'est pas encore implémentée.
-
-Pour la requête paramétrable (`Request10.sql`), le nom du gaz se règle en tête de script :
+Pour la requête paramétrable (`Request11.sql`), le nom du gaz se règle en tête de script :
 
 ```sql
-SET @gaz_name := 'N2O';   -- remplacer par le gaz souhaité
+SET @gaz_name := 'NH3';   -- remplacer par le gaz souhaité
 ```
 
 ---
@@ -75,7 +83,8 @@ SET @gaz_name := 'N2O';   -- remplacer par le gaz souhaité
 ## Prérequis
 
 - **MySQL 8.0** (ou MariaDB 10.5+). Le code utilise des fonctions spécifiques :
-  `AUTO_INCREMENT`, `YEAR()`, `DATE_FORMAT()`, variables utilisateur `SET @var`.
+  `AUTO_INCREMENT`, `YEAR()`, `DATEDIFF()`, `CURDATE()`, variables utilisateur `SET @var`.
+- **git** pour récupérer le dépôt.
 - Un client en ligne de commande (**MySQL Command Line Client**) ou une interface
   graphique (**MySQL Workbench**).
 - Encodage **UTF-8** recommandé (les données contiennent des accents : « Île-de-France »,
@@ -85,44 +94,55 @@ SET @gaz_name := 'N2O';   -- remplacer par le gaz souhaité
 
 ## Installation / Lancement
 
-Les scripts ne créent pas la base : il faut la créer d'abord, puis charger les scripts
-**dans l'ordre** (tables → peuplement → requêtes).
+Le parcours complet, depuis la récupération du dépôt jusqu'à l'exécution d'une requête. Les
+scripts SQL ne créent pas la base de données : on la crée d'abord, puis on charge les scripts
+**dans l'ordre** (tables → peuplement → droits → requêtes).
 
 ### En ligne de commande
 
 ```bash
-# 1. Créer la base et s'y placer
+# 1. Récupérer le dépôt et s'y placer
+git clone https://github.com/Estebge/SQL.git
+cd SQL
+
+# 2. Créer la base de données
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS qualite_air CHARACTER SET utf8mb4;"
 
-# 2. Créer les tables
+# 3. Créer les tables (schéma + contraintes)
 mysql -u root -p qualite_air < Creation_des_tables.sql
 
-# 3. Peupler la base
+# 4. Peupler la base (jeu de données d'essai)
 mysql -u root -p qualite_air < Peuplement_tables.sql
 
-# 4. Lancer une requête (exemple)
+# 5. (Optionnel) Créer les comptes admin_air / user_air et leurs droits
+mysql -u root -p qualite_air < Droits_utilisateurs.sql
+
+# 6. Lancer une requête (exemple : la n° 1)
 mysql -u root -p qualite_air < Request1.sql
 ```
+
+> `-u root -p` : connexion en tant que `root`, `-p` demande le mot de passe de manière
+> interactive (adapter l'utilisateur au besoin). Les étapes 3 à 5 chargent chacune un fichier
+> dans la base `qualite_air` ; chaque `RequestN.sql` se lance ensuite de la même façon en
+> changeant le numéro.
 
 ### Depuis MySQL Workbench
 
 1. `CREATE DATABASE qualite_air;` puis sélectionner la base.
 2. Ouvrir et exécuter `Creation_des_tables.sql`.
 3. Ouvrir et exécuter `Peuplement_tables.sql`.
-4. Ouvrir un fichier `RequestN.sql` et l'exécuter.
+4. (Optionnel) Ouvrir et exécuter `Droits_utilisateurs.sql`.
+5. Ouvrir un fichier `RequestN.sql` et l'exécuter.
 
 ---
 
-## Pistes d'amélioration
+## Limites connues
 
-Éléments prévus au cahier des charges mais absents / perfectibles dans l'état actuel :
+Le jeu de données est **fictif**, généré pour servir de jeu d'essai. Quelques imperfections y
+subsistent : elles ne cassent aucune requête et sont laissées telles quelles.
 
-- **Requête #10** (productivité des administratifs de Toulouse) à écrire.
-- **Comptes et droits** : créer au moins deux utilisateurs (`admin` et `user`) avec des
-  `GRANT` adaptés.
-- **Moteur de stockage** : préciser explicitement `ENGINE=InnoDB` (intégrité
-  référentielle) et ajouter des **index** sur les colonnes filtrées/jointes pour
-  l'optimisation.
-- **Cohérence des données d'essai** : quelques dates de naissance d'agents sont dans le
-  futur (test data), à corriger avant une démo.
-```
+- Certaines valeurs de relevés ne sont pas réalistes pour les gaz concernés (jeu d'essai).
+- Quelques rattachements ville ↔ région ou coordonnées d'agences comportent de légères
+  incohérences de saisie.
+- Les mots de passe des comptes de `Droits_utilisateurs.sql` sont des mots de passe de
+  **démonstration** — à changer avant tout usage réel.
